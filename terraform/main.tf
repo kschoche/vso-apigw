@@ -22,7 +22,7 @@ provider "kubernetes" {
 provider "vault" {
   # Configuration options
   address = "http://127.0.0.1:38300"
-  token = "root"
+  token   = "root"
 }
 
 provider "helm" {
@@ -34,7 +34,7 @@ provider "helm" {
 
 locals {
   vault_namespace = null
-  namespace = "default"
+  namespace       = "default"
 }
 
 resource "kubernetes_namespace" "vault" {
@@ -102,8 +102,8 @@ resource "vault_kubernetes_auth_backend_role" "default" {
 }
 
 resource "vault_policy" "default" {
-  name      = "dev"
-  policy    = <<EOT
+  name   = "dev"
+  policy = <<EOT
 path "${vault_mount.pki.path}/*" {
   capabilities = ["read", "create", "update"]
 }

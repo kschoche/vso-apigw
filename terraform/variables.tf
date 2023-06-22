@@ -1,10 +1,6 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-variable "k8s_vault_connection_address" {
-  default = "http://vault.default.svc.cluster.local:8200"
-}
-
 variable "k8s_config_context" {
   default = "kind-dc1"
 }
