@@ -1,0 +1,73 @@
+# Create a Gateway listening on port 8443
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: api-gateway
+  namespace: consul
+spec:
+  gatewayClassName: consul
+  listeners:
+  - protocol: HTTPS
+    port: 8443
+    name: https
+    allowedRoutes:
+      namespaces:
+        from: Same
+    tls:
+      certificateRefs:
+        - name: pki1
+          namespace: default
+---
+# Route all traffic through the Gateway to the echo-1 service
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: echo-1-route
+  namespace: consul
+spec:
+  parentRefs:
+  - name: api-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - kind: Service
+      name: echo-1
+      namespace: default
+      port: 80
+---
+# Allow the HTTPRoute in the consul namespace to reference the
+# echo-1 Service as the backend in the default namespace
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: ReferenceGrant
+metadata:
+  name: echo-1-reference-grant
+  namespace: default
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: consul  # Must match the namespace that api-gw/routes.yaml is deployed into
+  to:
+    - group: ""
+      kind: Service
+      name: echo-1
+---
+# Allow the Gateway in the consul namespace to reference the
+# Secret containing the certificate in the default namespace
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: ReferenceGrant
+metadata:
+  name: pki1-reference-grant
+  namespace: default
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      namespace: consul
+  to:
+    - group: ""
+      kind: Secret
+      name: pki1

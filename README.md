@@ -9,7 +9,7 @@ certificates to APIGW applications using the Vault Secrets Operator.
 to use a Secure configuration of Vault, Consul, and VSO using a combination of TLS, ACLs, and etcd encryption.**
 
 * Install Vault
-* Install Consul with APIGW enabled
+* Install Consul
 * Bootstrap Vault
 * Install Vault Secrets Operator
 * Deploy VSO Custom Resources
@@ -33,6 +33,11 @@ $ kind create cluster \
         --image=kindest/node:v1.25.3
 ```
 
+### Install Consul
+```shell
+$ helm install consul hashicorp/consul --values consul-values.yaml --version 1.2.0 --namespace consul --create-namespace --wait
+```
+
 ### Install Vault
 ```shell
 $ helm install vault hashicorp/vault --values vault-values.yaml --version 0.23.0 --wait
@@ -44,9 +49,6 @@ $ kubectl delete pod vault-0
 # Wait for vault to come back online (READY).
 ```
 
-### Install Consul with APIGW enabled
-< TBD >
-
 ### Bootstrap Vault
 Vault must be bootstrapped with the following resources:
 * Kubernetes Auth Method, Backend and Role
@@ -55,7 +57,7 @@ Vault must be bootstrapped with the following resources:
 
 ```shell
 # Using Terraform to apply the bootstrap configuration:
-$ cd terraform && terraform init -upgrade && terraform apply -auto-approve
+$ cd terraform && terraform init -upgrade && terraform apply -auto-approve && cd ..
 <snip>
 
 Plan: 7 to add, 1 to change, 0 to destroy.
@@ -142,10 +144,27 @@ $ kubectl get secret pki1 -o json
         "resourceVersion": "957",
         "uid": "65210b6c-de1f-42fb-b7a4-236d94b45514"
     },
-    "type": "Opaque"
+    "type": "kubernetes.io/tls"
 }
 ```
 
-### Deploy APIGW Application
+### Deploy Echo Service
+```shell
+$ kubectl apply -f echo-service.yaml
+```
 
-< TBD >
+### Deploy API Gateway Routing to Echo Service
+```shell
+$ kubectl apply -f api-gateway.yaml
+```
+
+### Clean Up
+```shell
+$ kubectl delete -f api-gateway.yaml && \
+    kubectl delete -f echo-service.yaml && \
+    kubectl delete -f vso-secret.yaml && \
+    helm uninstall vault-secrets-operator -n vault-secrets-operator && \
+    cd terraform && terraform destroy -auto-approve && cd .. && \
+    helm uninstall vault -n default && \
+    helm uninstall consul -n consul
+```
