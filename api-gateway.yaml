@@ -1,0 +1,135 @@
+# BACKEND SERVICE #
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: echo-1
+  namespace: default
+spec:
+  protocol: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: echo-1
+  name: echo-1
+  namespace: default
+spec:
+  ports:
+  - port: 8080
+    name: high
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: echo-1
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: echo-1
+  namespace: default
+automountServiceAccountToken: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: echo-1
+  name: echo-1
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-1
+  template:
+    metadata:
+      labels:
+        app: echo-1
+      annotations:
+        'consul.hashicorp.com/connect-inject': 'true'
+    spec:
+      serviceAccountName: echo-1
+      containers:
+      - image: k8s.gcr.io/ingressconformance/echoserver:v0.0.1
+        name: echo-1
+        env:
+        - name: SERVICE_NAME
+          value: echo-1
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - containerPort: 3000
+---
+# GATEWAY #
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: api-gateway
+  namespace: consul
+spec:
+  gatewayClassName: consul
+  listeners:
+  - protocol: HTTPS
+    port: 8443
+    name: https
+    allowedRoutes:
+      namespaces:
+        from: Same
+    tls:
+      certificateRefs:
+        - name: consul-server-cert
+          namespace: consul
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: echo-1-route
+  namespace: consul
+spec:
+  parentRefs:
+  - name: api-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - kind: Service
+      name: echo-1
+      namespace: default
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: ReferenceGrant
+metadata:
+  name: echo-1-reference-grant
+  namespace: default
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: consul  # Must match the namespace that api-gw/routes.yaml is deployed into
+  to:
+    - group: ""
+      kind: Service
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: ReferenceGrant
+metadata:
+  name: pki1-reference-grant
+  namespace: default
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      namespace: consul  # Must match the namespace that api-gw/routes.yaml is deployed into
+  to:
+    - group: ""
+      kind: Secret
