@@ -144,7 +144,7 @@ $ kubectl get secret pki1 -o json
         "resourceVersion": "957",
         "uid": "65210b6c-de1f-42fb-b7a4-236d94b45514"
     },
-    "type": "Opaque"
+    "type": "kubernetes.io/tls"
 }
 ```
 
@@ -154,7 +154,7 @@ $ kubectl get secret pki1 -o json
 $ kubectl apply -f echo-service.yaml
 ```
 
-### Deploy Gateway Routing to Echo Service
+### Deploy API Gateway Routing to Echo Service
 
 ```shell
 $ kubectl apply -f api-gateway.yaml
