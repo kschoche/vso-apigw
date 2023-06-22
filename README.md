@@ -148,7 +148,13 @@ $ kubectl get secret pki1 -o json
 }
 ```
 
-### Deploy APIGW Application
+### Deploy Echo Service
+
+```shell
+$ kubectl apply -f echo-service.yaml
+```
+
+### Deploy Gateway Routing to Echo Service
 
 ```shell
 $ kubectl apply -f api-gateway.yaml
