@@ -33,6 +33,11 @@ $ kind create cluster \
         --image=kindest/node:v1.25.3
 ```
 
+### Install Consul
+```shell
+$ helm install consul hashicorp/consul --values consul-values.yaml --version 1.2.0 --namespace consul --create-namespace --wait
+```
+
 ### Install Vault
 ```shell
 $ helm install vault hashicorp/vault --values vault-values.yaml --version 0.23.0 --wait
@@ -44,11 +49,6 @@ $ kubectl delete pod vault-0
 # Wait for vault to come back online (READY).
 ```
 
-### Install Consul
-```shell
-$ helm install consul hashicorp/consul --values consul-values.yaml --version 1.2.0 --namespace consul --create-namespace --wait
-```
-
 ### Bootstrap Vault
 Vault must be bootstrapped with the following resources:
 * Kubernetes Auth Method, Backend and Role
@@ -57,7 +57,7 @@ Vault must be bootstrapped with the following resources:
 
 ```shell
 # Using Terraform to apply the bootstrap configuration:
-$ cd terraform && terraform init -upgrade && terraform apply -auto-approve
+$ cd terraform && terraform init -upgrade && terraform apply -auto-approve && cd ..
 <snip>
 
 Plan: 7 to add, 1 to change, 0 to destroy.
@@ -149,13 +149,22 @@ $ kubectl get secret pki1 -o json
 ```
 
 ### Deploy Echo Service
-
 ```shell
 $ kubectl apply -f echo-service.yaml
 ```
 
 ### Deploy API Gateway Routing to Echo Service
-
 ```shell
 $ kubectl apply -f api-gateway.yaml
+```
+
+### Clean Up
+```shell
+$ kubectl delete -f api-gateway.yaml && \
+    kubectl delete -f echo-service.yaml && \
+    kubectl delete -f vso-secret.yaml && \
+    helm uninstall vault-secrets-operator -n vault-secrets-operator && \
+    cd terraform && terraform destroy -auto-approve && cd .. && \
+    helm uninstall vault -n default && \
+    helm uninstall consul -n consul
 ```
