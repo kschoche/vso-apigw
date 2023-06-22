@@ -9,7 +9,7 @@ certificates to APIGW applications using the Vault Secrets Operator.
 to use a Secure configuration of Vault, Consul, and VSO using a combination of TLS, ACLs, and etcd encryption.**
 
 * Install Vault
-* Install Consul with APIGW enabled
+* Install Consul
 * Bootstrap Vault
 * Install Vault Secrets Operator
 * Deploy VSO Custom Resources
@@ -44,8 +44,10 @@ $ kubectl delete pod vault-0
 # Wait for vault to come back online (READY).
 ```
 
-### Install Consul with APIGW enabled
-< TBD >
+### Install Consul
+```shell
+$ helm install consul hashicorp/consul --values consul-values.yaml --version 1.2.0 --namespace consul --create-namespace --wait
+```
 
 ### Bootstrap Vault
 Vault must be bootstrapped with the following resources:
@@ -148,4 +150,6 @@ $ kubectl get secret pki1 -o json
 
 ### Deploy APIGW Application
 
-< TBD >
+```shell
+$ kubectl apply -f api-gateway.yaml
+```
