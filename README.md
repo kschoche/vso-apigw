@@ -26,7 +26,7 @@ to use a Secure configuration of Vault, Consul, and VSO using a combination of T
 Note: This guide assumes the repository has been cloned locally and $PWD is the root of the repository.
 ### Setup Kind Cluster [Optional]
 ```shell
-$ kind create cluster \
+kind create cluster \
         --wait=5m \
         --name=dc1 \
         --config=kind-config.yaml \
@@ -35,17 +35,17 @@ $ kind create cluster \
 
 ### Install Consul
 ```shell
-$ helm install consul hashicorp/consul --values consul-values.yaml --version 1.2.0 --namespace consul --create-namespace --wait
+helm install consul hashicorp/consul --values consul-values.yaml --version 1.2.0 --namespace consul --create-namespace --wait
 ```
 
 ### Install Vault
 ```shell
-$ helm install vault hashicorp/vault --values vault-values.yaml --version 0.23.0 --wait
+helm install vault hashicorp/vault --values vault-values.yaml --version 0.23.0 --wait
 # This allows a hostPort path to be defined on the vault server for demo purposes.
 # Alternatively you can use `kubectl port-forward` or provision TF from within the Kubernets cluster.
-$ kubectl patch --namespace=default statefulset vault --patch-file ./patch.yaml
+kubectl patch --namespace=default statefulset vault --patch-file ./patch.yaml
 # Restarts the vault pod to pick up the patch.
-$ kubectl delete pod vault-0
+kubectl delete pod vault-0
 # Wait for vault to come back online (READY).
 ```
 
@@ -57,7 +57,7 @@ Vault must be bootstrapped with the following resources:
 
 ```shell
 # Using Terraform to apply the bootstrap configuration:
-$ cd terraform && terraform init -upgrade && terraform apply -auto-approve && cd ..
+cd terraform && terraform init -upgrade && terraform apply -auto-approve && cd ..
 <snip>
 
 Plan: 7 to add, 1 to change, 0 to destroy.
@@ -87,7 +87,7 @@ VaultAuthMethod and VaultConnection custom resources.
 
 ```shell
 # Install vault-secrets-operator
-$ helm install --values vso-values.yaml --create-namespace --namespace vault-secrets-operator \
+helm install --values vso-values.yaml --create-namespace --namespace vault-secrets-operator \
 vault-secrets-operator hashicorp/vault-secrets-operator --version 0.1.0
 
 NAME: vault-secrets-operator
@@ -102,7 +102,7 @@ Apply a VaultPKISecret custom resource which references the Vault PKI Role and d
 the application will consume.
 
 ```shell
-$ kubectl apply -f vso-secret.yaml
+kubectl apply -f vso-secret.yaml
 
 vaultpkisecret.secrets.hashicorp.com/vaultpkisecret-sample created
 ```
@@ -110,7 +110,7 @@ vaultpkisecret.secrets.hashicorp.com/vaultpkisecret-sample created
 Confirm that the certificate has been issued by reading the Kubernetes Secret which is created
 by the operator:
 ```shell
-$ kubectl get secret pki1 -o json
+kubectl get secret pki1 -o json
 {
     "apiVersion": "v1",
     "data": {
@@ -150,17 +150,17 @@ $ kubectl get secret pki1 -o json
 
 ### Deploy Echo Service
 ```shell
-$ kubectl apply -f echo-service.yaml
+kubectl apply -f echo-service.yaml
 ```
 
 ### Deploy API Gateway Routing to Echo Service
 ```shell
-$ kubectl apply -f api-gateway.yaml
+kubectl apply -f api-gateway.yaml
 ```
 
 ### Clean Up
 ```shell
-$ kubectl delete -f api-gateway.yaml && \
+kubectl delete -f api-gateway.yaml && \
     kubectl delete -f echo-service.yaml && \
     kubectl delete -f vso-secret.yaml && \
     helm uninstall vault-secrets-operator -n vault-secrets-operator && \
