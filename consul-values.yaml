@@ -1,8 +1,5 @@
 global:
   name: consul
-  image: hashicorppreview/consul:1.16-dev
-  imageK8S: hashicorppreview/consul-k8s-control-plane:1.2.0-dev
-  imageConsulDataplane: hashicorppreview/consul-dataplane:1.2.0-rc1-dev
   tls:
     enabled: true
 server:
