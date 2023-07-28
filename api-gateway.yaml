@@ -36,7 +36,7 @@ spec:
     - kind: Service
       name: echo-1
       namespace: default
-      port: 80
+      port: 8080
 ---
 # Allow the HTTPRoute in the consul namespace to reference the
 # echo-1 Service as the backend in the default namespace
