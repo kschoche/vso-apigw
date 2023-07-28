@@ -17,21 +17,15 @@ to use a Secure configuration of Vault, Consul, and VSO using a combination of T
 
 
 ## Required Tools
-* Kind + Kubernetes 1.25+
 * Vault 1.11+
 * Consul 1.16+
 * Terraform 1.4.6+
 * Helm 3
 
-Note: This guide assumes the repository has been cloned locally and $PWD is the root of the repository.
-### Setup Kind Cluster [Optional]
-```shell
-$ kind create cluster \
-        --wait=5m \
-        --name=dc1 \
-        --config=kind-config.yaml \
-        --image=kindest/node:v1.25.3
-```
+Note: This guide assumes that:
+- the repository has been cloned locally
+- you already have a running Kubernetes cluster
+- $PWD is the root of the repository
 
 ### Install Consul
 ```shell
@@ -41,12 +35,9 @@ $ helm install consul hashicorp/consul --values consul-values.yaml --version 1.2
 ### Install Vault
 ```shell
 $ helm install vault hashicorp/vault --values vault-values.yaml --version 0.23.0 --wait
-# This allows a hostPort path to be defined on the vault server for demo purposes.
-# Alternatively you can use `kubectl port-forward` or provision TF from within the Kubernets cluster.
-$ kubectl patch --namespace=default statefulset vault --patch-file ./patch.yaml
-# Restarts the vault pod to pick up the patch.
-$ kubectl delete pod vault-0
-# Wait for vault to come back online (READY).
+# In a separate terminal session, expose Vault on localhost.
+# This allows us to program Vault using Terraform below.
+$ kubectl port-forward service/vault --namespace default 8200
 ```
 
 ### Bootstrap Vault
